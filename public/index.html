@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ホーム</title>
+<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/1/19/Google_Classroom_Logo.svg">
+</head>
+<body>
+<h2>URLを入力</h2>
+<input type="text" id="urlInput" placeholder="URLを入力">
+<button onclick="downloadVideo()">ダウンロード</button>
+
+<script>
+async function downloadVideo() {
+    const url = document.getElementById('urlInput').value;
+    if (!url) {
+        alert('URLを入力してください');
+        return;
+    }
+
+    try {
+        const response = await fetch('/download', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url})
+        });
+
+        const blob = await response.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'video.mp4';
+        a.click();
+    } catch (e) {
+        alert('エラーが発生:' + e);
+    }
+}
+</script>
+</body>
+</html>
