@@ -1,7 +1,7 @@
 const express = require('express');
+const ytdl = require('ytdl-core');
 const fs = require('fs-extra');
 const path = require('path');
-const { exec } = require('child_process');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,26 +11,29 @@ app.use(express.static('public'));
 
 app.post('/download', async (req, res) => {
     const url = req.body.url;
-    if (!url || !url.startsWith('http')) {
+    if (!ytdl.validateURL(url)) {
         return res.status(400).send('無効なURL');
     }
 
     try {
         const tempFile = path.join(__dirname, 'temp_video.mp4');
-        await fs.remove(tempFile); // 古いファイル削除
+        await fs.remove(tempFile);
 
-        // yt-dlp コマンドで動画をダウンロード
-        const cmd = `yt-dlp -f best -o "${tempFile}" "${url}"`;
-        exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.error('yt-dlp error:', stderr);
-                return res.status(500).send('ダウンロード中にエラー');
-            }
+        const videoStream = ytdl(url, { quality: 'highestvideo' });
+        const writeStream = fs.createWriteStream(tempFile);
+
+        videoStream.pipe(writeStream);
+
+        writeStream.on('finish', () => {
             res.download(tempFile, 'video.mp4', async () => {
                 await fs.remove(tempFile);
             });
         });
 
+        writeStream.on('error', (err) => {
+            console.error(err);
+            res.status(500).send('保存中にエラー');
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('処理中にエラー');
