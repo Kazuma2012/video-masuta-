@@ -1,5 +1,5 @@
 const express = require('express');
-const ytdl = require('ytdl-core');
+const ytdl = require('ytdl-core-remastered');
 const fs = require('fs-extra');
 const path = require('path');
 const app = express();
