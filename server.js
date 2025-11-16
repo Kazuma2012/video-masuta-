@@ -1,5 +1,3 @@
-<!-- server.js -->
-<script type="text/plain">
 const express = require('express');
 const ytdl = require('ytdl-core');
 const fs = require('fs-extra');
@@ -45,4 +43,3 @@ app.post('/download', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
-</script>
