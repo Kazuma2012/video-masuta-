@@ -1,5 +1,4 @@
-
-<script type="text/plain">
+<pre>
 {
   "name": "video-downloader",
   "version": "1.0.0",
@@ -13,4 +12,4 @@
     "ytdl-core": "^4.11.0"
   }
 }
-</script>
+</pre>
