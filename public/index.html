@@ -7,14 +7,16 @@
 </head>
 <body>
 <h2>URLを入力</h2>
-<input type="text" id="urlInput" placeholder="URLを入力">
+
+<input type="text" id="urlInput" placeholder="URLを入力してね">
 <button onclick="downloadVideo()">ダウンロード</button>
 
 <script>
 async function downloadVideo() {
     const url = document.getElementById('urlInput').value;
+
     if (!url) {
-        alert('URLを入力してください');
+        alert('URLを入力');
         return;
     }
 
@@ -22,18 +24,25 @@ async function downloadVideo() {
         const response = await fetch('/download', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({url})
+            body: JSON.stringify({ url })
         });
+
+        if (!response.ok) {
+            alert('ダウンロードに失敗');
+            return;
+        }
 
         const blob = await response.blob();
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'video.mp4';
+        a.download = "video.mp4";
         a.click();
+
     } catch (e) {
-        alert('エラーが発生:' + e);
+        alert('エラー発生:' + e);
     }
 }
 </script>
+
 </body>
 </html>
