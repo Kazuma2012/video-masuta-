@@ -1,5 +1,6 @@
 const express = require('express');
-const ytdl = require('ytdl-core');
+const { Innertube } = require('youtubei.js');
+const fs = require('fs');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -8,14 +9,21 @@ app.use(express.static('public'));
 
 app.post('/download', async (req, res) => {
     const url = req.body.url;
-    if (!ytdl.validateURL(url)) return res.status(400).send('無効なURL');
 
     try {
-        const info = await ytdl.getInfo(url);
-        const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo' });
+        const yt = await Innertube.create();
+        const video = await yt.getVideo(url);
+
+        // 適切なフォーマットを取得（mp4 / highest quality）
+        const format = video.engagement.formats.find(f => f.container === 'mp4' && f.quality_label);
+
+        if (!format) return res.status(400).send('ダウンロード可能な動画が見つかりません');
+
+        const stream = await video.download(format.itag);
 
         res.header('Content-Disposition', 'attachment; filename="video.mp4"');
-        ytdl(url, { format }).pipe(res);
+        stream.pipe(res);
+
     } catch (err) {
         console.error(err);
         res.status(500).send('ダウンロード失敗');
