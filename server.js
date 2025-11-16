@@ -1,8 +1,5 @@
 const express = require('express');
 const ytdl = require('ytdl-core');
-const fs = require('fs-extra');
-const path = require('path');
-
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -11,35 +8,18 @@ app.use(express.static('public'));
 
 app.post('/download', async (req, res) => {
     const url = req.body.url;
-    if (!ytdl.validateURL(url)) {
-        return res.status(400).send('無効なURL');
-    }
+    if (!ytdl.validateURL(url)) return res.status(400).send('無効なURL');
 
     try {
-        const tempFile = path.join(__dirname, 'temp_video.mp4');
-        await fs.remove(tempFile);
+        const info = await ytdl.getInfo(url);
+        const format = ytdl.chooseFormat(info.formats, { quality: 'highestvideo' });
 
-        const videoStream = ytdl(url, { quality: 'highestvideo' });
-        const writeStream = fs.createWriteStream(tempFile);
-
-        videoStream.pipe(writeStream);
-
-        writeStream.on('finish', () => {
-            res.download(tempFile, 'video.mp4', async () => {
-                await fs.remove(tempFile);
-            });
-        });
-
-        writeStream.on('error', (err) => {
-            console.error(err);
-            res.status(500).send('保存中にエラー');
-        });
+        res.header('Content-Disposition', 'attachment; filename="video.mp4"');
+        ytdl(url, { format }).pipe(res);
     } catch (err) {
         console.error(err);
-        res.status(500).send('処理中にエラー');
+        res.status(500).send('ダウンロード失敗');
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+app.listen(port, () => console.log(`Server running on port ${port}`));
